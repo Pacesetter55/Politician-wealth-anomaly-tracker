@@ -275,8 +275,8 @@ with st.sidebar:
     <div style="font-size:0.78rem;color:#94a3b8;line-height:2">
         📂 &nbsp;Data from <b>myneta.info</b><br>
         🗓️ &nbsp;Lok Sabha <b>1999 – 2024</b><br>
-        🤖 &nbsp;AI via <b>Ollama llama3.1:8b</b><br>
-        🔒 &nbsp;Fully <b>local</b> — no data sent online
+        🤖 &nbsp;AI via <b>Groq llama-3.1-8b-instant</b><br>
+        ⚡ &nbsp;Powered by <b>Groq cloud API</b>
     </div>
     """, unsafe_allow_html=True)
 
@@ -471,7 +471,7 @@ elif st.session_state.profiles:
         st.markdown('<div class="sec-head">AI Summary</div>', unsafe_allow_html=True)
         if not st.session_state.ai_summary:
             if st.button("✨ Generate AI Summary", type="secondary"):
-                with st.spinner("Analyzing with llama3.1:8b…"):
+                with st.spinner("Analyzing with Groq llama-3.1-8b-instant…"):
                     st.session_state.ai_summary = get_quick_summary(profiles)
         if st.session_state.ai_summary:
             st.markdown(f'<div class="ai-summary">{st.session_state.ai_summary.replace(chr(10),"<br>")}</div>',
@@ -644,7 +644,7 @@ elif st.session_state.profiles:
             <span style="font-size:1.6rem">🤖</span>
             <div>
                 <div class="ai-title">AI Political Analyst</div>
-                <div class="ai-sub">Powered by Ollama llama3.1:8b · Runs 100% locally · Answers grounded in affidavit data</div>
+                <div class="ai-sub">Powered by Groq llama-3.1-8b-instant · Fast cloud inference · Answers grounded in affidavit data</div>
             </div>
         </div>
         """, unsafe_allow_html=True)

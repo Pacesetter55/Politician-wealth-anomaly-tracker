@@ -10,6 +10,7 @@ Strategy:
 
 import re
 import time
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -259,7 +260,7 @@ def get_all_elections_for_politician(name: str) -> list[dict]:
 
 # ─── Internal helpers ────────────────────────────────────────────────────────
 
-def _get_compare_profile_url(profile_url: str) -> str | None:
+def _get_compare_profile_url(profile_url: str) -> Optional[str]:
     """
     From a candidate profile page, find the compare_profile link
     in the 'Other Elections' table.

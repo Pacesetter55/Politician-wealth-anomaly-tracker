@@ -1,7 +1,12 @@
-import ollama
+import os
+from groq import Groq
+from dotenv import load_dotenv
 from analyzer import format_inr, detect_discrepancies, wealth_growth_pct
 
-MODEL = "llama3.1:8b"
+load_dotenv()
+
+MODEL = "llama-3.1-8b-instant"
+_client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 
 def build_politician_context(profiles: list[dict]) -> str:
@@ -38,10 +43,9 @@ def build_politician_context(profiles: list[dict]) -> str:
             f"  Criminal Cases Declared: {p.get('num_criminal_cases', 0)}"
         )
         if p.get("criminal_cases"):
-            for c in p["criminal_cases"][:3]:  # limit to 3 cases per year
+            for c in p["criminal_cases"][:3]:
                 lines.append(f"    - {c}")
 
-    # Wealth growth summary
     growth = wealth_growth_pct(profiles)
     if growth:
         lines.append("\n=== WEALTH GROWTH BETWEEN ELECTIONS ===")
@@ -52,7 +56,6 @@ def build_politician_context(profiles: list[dict]) -> str:
                 f"({'+' if g['growth_pct'] > 0 else ''}{g['growth_pct']}%)"
             )
 
-    # Discrepancies
     flags = detect_discrepancies(profiles)
     if flags:
         lines.append("\n=== DISCREPANCIES / FLAGS ===")
@@ -67,11 +70,6 @@ def chat(
     profiles: list[dict],
     history: list[dict],
 ) -> str:
-    """
-    Send a chat message to Ollama with politician data as system context.
-    history: list of {"role": "user"/"assistant", "content": "..."}
-    Returns the assistant's response string.
-    """
     context = build_politician_context(profiles)
 
     system_prompt = f"""You are a civic-intelligence assistant helping Indian citizens understand their political candidates for Lok Sabha elections.
@@ -91,15 +89,14 @@ Guidelines:
 """
 
     messages = [{"role": "system", "content": system_prompt}]
-    # Add history (limit to last 10 turns to keep context manageable)
     messages.extend(history[-10:])
     messages.append({"role": "user", "content": user_message})
 
     try:
-        response = ollama.chat(model=MODEL, messages=messages)
-        return response["message"]["content"]
+        response = _client.chat.completions.create(model=MODEL, messages=messages)
+        return response.choices[0].message.content
     except Exception as e:
-        return f"Error connecting to Ollama: {e}\n\nMake sure Ollama is running (`ollama serve`) and llama3.1:8b is pulled (`ollama pull llama3.1:8b`)."
+        return f"Error connecting to Groq: {e}"
 
 
 def get_quick_summary(profiles: list[dict]) -> str:
@@ -122,13 +119,13 @@ def get_quick_summary(profiles: list[dict]) -> str:
 Guidelines: Be factual, use Indian number system, note criminal cases without assuming guilt, flag suspicious patterns."""
 
     try:
-        response = ollama.chat(
+        response = _client.chat.completions.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
             ],
         )
-        return response["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
         return f"Could not generate AI summary: {e}"
